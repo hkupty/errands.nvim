@@ -16,12 +16,27 @@ errands.set_config = function(obj)
   errands.config = utils.merge(defaultconfig, obj)
 end
 
+errands.read = function()
+  storage = persistence.read(errands.config.path .. errands.config.file)
+end
 
 errands.task = function(obj)
   local task = tasks.new(obj)
+  errands.read()
   table.insert(storage, task)
   errands.sync()
   return task
+end
+
+errands.update = function(obj)
+  errands.read()
+  table.storage[obj.id] = obj.update(table.storage[obj.id])
+  errands.sync()
+end
+
+errands.tasks = function(xform)
+  local view = xform or function(i) return i end
+  return view(storage)
 end
 
 errands.sync = function()

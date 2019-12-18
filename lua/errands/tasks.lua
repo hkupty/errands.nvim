@@ -1,10 +1,8 @@
 local tasks = {}
 
 tasks.new = function(obj)
-  return {
-    title = obj.title,
-    status = "open"
-  }
+    obj.status = "open"
+    return obj
 end
 
 tasks.start = function(obj)
