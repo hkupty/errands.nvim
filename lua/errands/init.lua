@@ -2,7 +2,9 @@
 local utils = require("errands.utils")
 local tasks = require("errands.tasks")
 local persistence = require("errands.persistence")
-local errands = {}
+local errands = {
+  filters = {}
+}
 local defaultconfig = {
   path = "$HOME/.config/errands.nvim/",
   file = "errands.json"
@@ -22,15 +24,13 @@ end
 
 errands.task = function(obj)
   local task = tasks.new(obj)
-  errands.read()
-  table.insert(storage, task)
-  errands.sync()
+  errands.upsert(task)
   return task
 end
 
-errands.update = function(obj)
+errands.upsert = function(obj)
   errands.read()
-  table.storage[obj.id] = obj.update(table.storage[obj.id])
+  storage[obj.id] = obj
   errands.sync()
 end
 
@@ -42,6 +42,14 @@ end
 errands.sync = function()
   --TODO Compare-and-swap?
   persistence.write(errands.config.path .. errands.config.file, storage)
+end
+
+errands.filters.open = function(errs)
+  return utils.filterkv(function(_, dt) return dt.completed == nil end, errs)
+end
+
+errands.filters.completed = function(errs)
+  return utils.filterkv(function(_, dt) return dt.completed ~= nil end, errs)
 end
 
 return errands

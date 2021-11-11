@@ -10,7 +10,7 @@ end
 
 persistence.read = function(path)
   local v = vim.api.nvim_call_function('readfile', {vim.api.nvim_call_function('expand', {path})})
-  if next(v) ~= nil then
+  if next(v) ~= nil and v[1] ~= "" then
     return vim.api.nvim_call_function('json_decode', {v})
   else
     return {}

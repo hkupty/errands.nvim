@@ -1,5 +1,6 @@
 --luacheck: globals vim
 local utils = {}
+function pack_(...) return {n=select('#', ...), ...} end
 
 local clone = function(orig)
     local orig_type = type(orig)
@@ -21,7 +22,7 @@ utils.deepcopy = vim.deepcopy or clone
 utils.merge = function(...)
   local new = {}
 
-  for _, tbl in ipairs(...) do
+  for _, tbl in ipairs(pack_(...)) do
     for k, v in pairs(tbl) do
       new[k] = v
     end
@@ -63,5 +64,43 @@ utils.deepcompare = function(t1, t2, ignore_mt)
   end
   return true
 end
+
+utils.filter = function(pred, tbl)
+  local sz = #tbl
+
+  local function iter (_, ix)
+    ix = ix + 1
+    if ix > sz then
+      return
+    else
+      local itm = tbl[ix]
+      if pred(itm) then
+        return ix, itm
+      else
+        return iter(_, ix)
+      end
+    end
+  end
+
+  return iter, tbl, 0
+end
+
+
+utils.filterkv = function(pred, tbl)
+  local function iter (_, k)
+    local nk, v = next(tbl, k)
+
+    if v == nil then
+      return
+    elseif pred(nk, v) then
+      return nk, v
+    else
+      return iter(tbl, nk)
+    end
+  end
+
+  return iter, tbl, nil
+end
+
 
 return utils
